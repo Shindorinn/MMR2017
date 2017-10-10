@@ -3,19 +3,14 @@ import cv2
 import pandas as pd
 import operator
 
-def same(row):
-    return row["L Event Info"] == row["R Event Info"]
-
 def event(row, eventstr):
-    return row["L Event Info"] == eventstr
-
-maxds = 0
+    return (row["L Event Info"] == eventstr) & (row["R Event Info"] == eventstr) & (not np.isnan(row["stimulus_id"])) & (not((row["Stimulus"] == "bbf32011-05e2-4a20-b06e-313857a5acea.jpg")
+ & (row["stimulus_id"] == 10879)))
 
 def analyze(df):
+    maxds = 0
     mode = "Wait"
     for index, row in df.iterrows():
-        if not same(row):
-            continue
         if mode == "Wait":
             if event(row, "Fixation"):
                 prevx, prevy = row["L POR X [px]"], row["L POR Y [px]"]
@@ -29,7 +24,12 @@ def analyze(df):
                 ds = dx * dx + dy * dy
                 if ds > maxds:
                     maxds = ds
+                    if maxds > 13304:
+                        print index, prevx, prevy, currx, curry
                 mode = "Wait"
+    return maxds
+
+maxds = 0
 
 for i in range(1, 2):
     number = str(i)
@@ -44,7 +44,9 @@ for i in range(1, 2):
         print "Memory", numebr,
         continue
     print number,
-    analyze(df)
+    ds = analyze(df)
+    if ds > maxds:
+        maxds = ds
 print
 
 print maxds

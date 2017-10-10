@@ -9,7 +9,7 @@ uniques = {}
 for column in df.columns:
     uniques[column] = set(df[column].unique())
 
-for i in range(2, 37):
+for i in range(2, 3):
     number = str(i)
     if(i < 10):
         number = "0" + number
