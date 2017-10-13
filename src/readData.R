@@ -1,7 +1,5 @@
 # This file contains functionality for reading in all necessary data
 
-library("xlsx")
-
 # Name: readData
 # Parameters: has no parameters
 # Result: has no return value
