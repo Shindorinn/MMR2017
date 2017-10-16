@@ -39,7 +39,20 @@ processData <- function(experimentFile, participantRatings)
 # Description: this function filters the data of a single text that was read by a single user
 filterData <- function(textData)
 {
+  # Filter out all samples where data is missing. It does not look like this is ever the case, but to be sure we 
+  # filter out these samples anyway
+  filteredData <- subset(textData, !is.na(textData$Time) & !is.na(textData$`L POR X [px]`) & 
+                           !is.na(textData$`L POR Y [px]`) & !is.na(textData$`R POR X [px]`) & 
+                           !is.na(textData$`R POR Y [px]`)) 
+  
   # Filter out all data where at least one of the positions of the eyes has a negative value
-  filteredData <- subset(textData, textData$`L POR X [px]` >= 0 & textData$`L POR Y [px]` >= 0 & 
-                         textData$`R POR X [px]` >= 0 & textData$`R POR Y [px]` >= 0)
+  filteredData <- subset(filteredData, filteredData$`L POR X [px]` >= 0 & filteredData$`L POR Y [px]` >= 0 & 
+                           filteredData$`R POR X [px]` >= 0 & filteredData$`R POR Y [px]` >= 0)
+  
+  # Filter out all data samples where the position of the left eye is different from the position of the right eye. 
+  # It does not look like this is ever the case, but to be sure we filter out these samples anyway
+  filteredData <- subset(filteredData, filteredData$`L POR X [px]` == filteredData$`R POR X [px]` & 
+                                       filteredData$`L POR Y [px]` == filteredData$`R POR Y [px]`)
+  
+  filteredData
 }
