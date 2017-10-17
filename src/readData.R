@@ -44,7 +44,7 @@ readData <- function()
                                   colIndex = c(1:6))
   
   # Loop over all participants to process their eye tracking data one at a time
-  for(index in c(1:length(unique(participantRatings$person.ID))))
+  for(index in c(1:1))#length(unique(participantRatings$person.ID))))
   {
     # Retrieve the ID of the current participant, i.e. of the current test subject
     participant <- unique(participantRatings$person.ID)[index]
@@ -61,4 +61,6 @@ readData <- function()
       trainingDataIndex <- trainingDataIndex + 1
     }
   }
+  
+  trainingData
 }
