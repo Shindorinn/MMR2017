@@ -5,7 +5,7 @@
 #   * experimentFile(type: character): the path to the file with the experiment data for the corresponding test subject
 #   * participantRatings(type: data.frame): the participant ratings for the test subject for which we need to 
 #                                           process the data
-# Result: A vector of training samples, one training sample for each text that has been read by the test subject
+# Result: A list of training samples, one training sample for each text that has been read by the test subject
 # Description: this function processes all the experiment data of the test subject
 processData <- function(experimentFile, participantRatings)
 {
@@ -23,15 +23,156 @@ processData <- function(experimentFile, participantRatings)
   # 18 texts that the test subject has read
   eyeTrackingData <- subset(eyeTrackingData, eyeTrackingData$stimulus_id %in% participantRatings$text.ID)
   
+  #   Specify the maximum allowed dispersion of the coordinates for a fixation event
+  dispersion <- 25
+  
+  # Create a vector to store all training samples, i.e. a sample of aggregate metrics for each text
+  trainingSamples <- list()
+  # The index for adding new training samples to the list at the correct position
+  trainingSample <- 1
+  
   # Process each text separately
   for(textID in unique(participantRatings$text.ID))
   {
     # Subset the eye tracking data for the current text
     textData <- subset(eyeTrackingData, eyeTrackingData$stimulus_id == textID)
+    # Filter the eye tracking data
     textData <- filterData(textData)
-    eventsData <- transformData(textData)
+    # Compute the different events fro the eye tracking data
+    eventsData <- transformData(textData, dispersion)
+    # Visualize the data
     visualizeData(textData, eventsData, unique(participantRatings$person.ID), textID)
+    # Extract the participant rating of the current text
+    rating <- participantRatings[participantRatings$text.ID == textID,]
+    # Add the vector of aggregate metrics to the set of training samples
+    trainingSamples[[trainingSample]] <- c(computeMetrics(eventsData, dispersion), 
+                                           as.vector(list(Interest = rating$interest, 
+                                                          Novelty_Complexity = rating$complexity,
+                                                          Comprehensibility = rating$comprehension)))
+    # Update the index for adding new new training samples to the list of training data for this participant
+    trainingSample <- trainingSample + 1
   }
+  
+  trainingSamples
+}
+
+# Name: computeMetrics
+# Parameters:
+#   * eventsData(type: data.frame): the data on the events of the eye movements
+#   * dispersion(type: integer): the maximum allowed dispersion of the coordinates for a fixation event
+# Result: this function returns a vector of aggregate metrics of the events
+# Description: this function computes the aggregate metrics of the events of the eye movements
+computeMetrics <- function(eventsData, dispersion)
+{
+  as.vector(append(append(computeFixationMetrics(eventsData$Fixations, dispersion), 
+                          computeSaccadeMetrics(eventsData$Saccades)), 
+                   computeBlinkMetrics(eventsData$Blinks)))
+}
+
+# Name: isProgressiveFixation
+# Parameters:
+#   * fixation1(type: data.frame): the first fixation event, i.e. the one that is first in time
+#   * fixation2(type: data.frame): the second fixation event, i.e. the one that is second in time
+#   * dispersion(type: integer): the maximum allowed dispersion of the coordinates for a fixation event
+# Result: this function returns TRUE if fixation2 is a progressive fixation with respect to fixation1. 
+#         Otherwise, FALSE is returned
+# Description: this function determines whether fixation2 is a progressive fixation or a regressive fixation
+isProgressiveFixation <- function(fixation1, fixation2, dispersion)
+{
+  # A fixation is classified as progressive if it either has a larger x-coordinate and roughly the same 
+  # y-coordinate(on the same line) or when it has a larger y-coordinate(on a lower line)
+  if((fixation2$x >= fixation1$x & fixation2$y >= fixation1$y - (dispersion/2)) | 
+     (fixation2$y >= fixation1$y + (dispersion/2))) 
+  {
+    return(TRUE)
+    
+  }
+  
+  FALSE
+}
+
+# Name: computeFixationMetrics
+# Parameters:
+#   * fixationsData(type: data.frame): the data of the fixation events
+#   * dispersion(type: integer): the maximum allowed dispersion of the coordinates for a fixation event
+# Result: this function returns a list of aggregate metrics of the fixation events
+# Description: this function computes the aggregate metrics of the fixation events
+computeFixationMetrics <- function(fixationsData, dispersion)
+{
+  # Create a data.frame for progressive fixations
+  progressiveFixations <- data.frame(start = integer(),
+                                     end = integer(),
+                                     dur = integer(),
+                                     x = double(), 
+                                     y = double())
+  # Create a data.frame for regressive fixations
+  regressiveFixations <- data.frame(start = integer(),
+                                    end = integer(),
+                                    dur = integer(),
+                                    x = double(), 
+                                    y = double())
+  # The first fixation is always a progressive fixation
+  progressiveFixations[1,] <- fixationsData[1,]
+  
+  # The index for inserting progressive fixations at the right place
+  progressiveFixationsIndex <- 2
+  # The index for inserting regressive fixations at the right place
+  regressiveFixationsIndex <- 1
+  
+  # Loop over all but the first fixation event to determine which fixations are progressive and which fixations 
+  # are regressive
+  for(index in c(2:nrow(fixationsData)))
+  {
+    # Check if the fixation is progressive
+    if(isProgressiveFixation(fixationsData[index - 1,], fixationsData[index,], dispersion))
+    {
+      progressiveFixations[progressiveFixationsIndex,] <- fixationsData[index,]
+      progressiveFixationsIndex <- progressiveFixationsIndex + 1
+    }
+    
+    # The fixation is regressive
+    else
+    {
+      regressiveFixations[regressiveFixationsIndex,] <- fixationsData[index,]
+      regressiveFixationsIndex <- regressiveFixationsIndex + 1
+    }
+  }
+  
+  list(Fixations = nrow(fixationsData),
+       Fixations_Progressive_Fraction = nrow(progressiveFixations) / nrow(fixationsData),
+       Fixations_Regressive_Fraction = nrow(regressiveFixations) / nrow(fixationsData),
+       Fixation_Progressive_Duration_Mean = mean(progressiveFixations$dur),
+       Fixation_Regressive_Duration_Mean = mean(regressiveFixations$dur),
+       Fixation_Progressive_Duration_SD = sd(progressiveFixations$dur),
+       Fixation_Regressive_Duration_SD = sd(regressiveFixations$dur))
+}
+
+# Name: computeSaccadeMetrics
+# Parameters:
+#   * saccadeData(type: data.frame): the data of the saccade events
+# Result: this function returns a list of aggregate metrics of the saccade events
+# Description: this function computes the aggregate metrics of the saccade events
+computeSaccadeMetrics <- function(saccadeData)
+{
+  list(Saccades = nrow(saccadeData),
+       Saccade_Duration_Mean = mean(saccadeData$Duration),
+       Saccade_Amplitude_Mean = mean(saccadeData$Amplitude),
+       Saccade_Velocity_Mean = mean(saccadeData$Velocity),
+       Saccade_Duration_SD = sd(saccadeData$Duration),
+       Saccade_Amplitude_SD = sd(saccadeData$Amplitude),
+       Saccade_Velocity_SD = sd(saccadeData$Velocity))
+}
+
+# Name: computeBlinkMetrics
+# Parameters:
+#   * blinkData(type: data.frame): the data of the blink events
+# Result: this function returns a list of aggregate metrics of the blink events
+# Description: this function computes the aggregate metrics of the blink events
+computeBlinkMetrics <- function(blinkData)
+{
+  list(Blinks = nrow(blinkData),
+       Blink_Duration_Mean = mean(blinkData$Duration),
+       Blink_Duration_SD = sd(blinkData$Duration))
 }
 
 # Name: visualizeData
@@ -173,14 +314,15 @@ visualizeFrequencies <- function(rawData, participant, text)
 # Name: transformData
 # Parameters:
 #   * rawData(type: data.frame): the raw data samples of the eye movements
+#   * dispersion(type: integer): the maximum allowed dispersion of the coordinates for a fixation event
 # Result: A list containing a data.frame of fixation events, a data.frame of saccade events and a data.frame of 
 #         blink events
 # Description: this function computes the fixation events, the saccade events and the blink events from the 
 #              raw eye movement data 
-transformData <- function(rawData)
+transformData <- function(rawData, dispersion)
 {
   # The fixation events
-  fixations <- fixationsData(rawData, 25, 6)
+  fixations <- fixationsData(rawData, dispersion, 6)
   
   list(Fixations = fixations, Saccades = saccadeData(fixations), Blinks = blinkData(rawData))
 }

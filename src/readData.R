@@ -25,16 +25,19 @@ readData <- function()
                              Saccades = integer(),
                              Saccade_Duration_Mean = double(),
                              Saccade_Amplitude_Mean = double(),
-                             Saccade_Peak_Velocity_Mean = double(),
+                             Saccade_Velocity_Mean = double(),
                              Saccade_Duration_SD = double(),
                              Saccade_Amplitude_SD = double(),
-                             Saccade_Peak_Velocity_SD = double(),
+                             Saccade_Velocity_SD = double(),
                              Blinks = integer(),
                              Blink_Duration_Mean = double(),
                              Blink_Duration_SD = double(),
                              Interest = double(),
                              Novelty_Complexity = double(),
                              Comprehensibility = double())
+  
+  # Index for adding new training samples to the set of training data for the model at the correct position 
+  trainingDataIndex <- 1
   
   # Read the data files with participant ratings
   participantRatings <- read.xlsx(paste(dataDirectoryPath, "/participant_ratings.xlsx", sep = ""), sheetIndex = 1, 
@@ -47,7 +50,15 @@ readData <- function()
     participant <- unique(participantRatings$person.ID)[index]
     
     # Process the eye tracking data of the current test subject
-    processData(experimentFile = paste(dataDirectoryPath, "/eye-tracking_data/", experimentFiles[index], sep = ""), 
-                participantRatings = subset(participantRatings, participantRatings$person.ID == participant))
+    trainingSamples <-processData(experimentFile = paste(dataDirectoryPath, "/eye-tracking_data/", 
+                                                         experimentFiles[index], sep = ""), 
+                                  participantRatings = subset(participantRatings, 
+                                                              participantRatings$person.ID == participant))
+    
+    for(sampleIndex in c(1:length(trainingSamples))) 
+    {
+      trainingData[trainingDataIndex,] <- trainingSamples[[sampleIndex]]
+      trainingDataIndex <- trainingDataIndex + 1
+    }
   }
 }
