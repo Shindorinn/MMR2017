@@ -29,8 +29,145 @@ processData <- function(experimentFile, participantRatings)
     # Subset the eye tracking data for the current text
     textData <- subset(eyeTrackingData, eyeTrackingData$stimulus_id == textID)
     textData <- filterData(textData)
-    transformData(textData)
+    eventsData <- transformData(textData)
+    visualizeData(textData, eventsData, unique(participantRatings$person.ID), textID)
   }
+}
+
+# Name: visualizeData
+# Parameters:
+#   * rawData(type: data.frame): the raw data of the eye movements
+#   * eventsData(type: data.frame): the data on the events of the eye movements
+#   * participant(type: integer): the id number of the participant 
+#   * text(type: integer): the id number of the text
+# Result: this function does not return a result
+# Description: this function creates a heat map of the eye movements and it writes the heat map to a file
+visualizeData <- function(rawData, eventsData, participant, text)
+{
+  visualizeHeatmap(rawData, participant, text)
+  visualizeScanpath(eventsData$Fixations, participant, text)
+  visualizeFrequencies(rawData, participant, text)
+}
+
+# Name: visualizeHeatmap
+# Parameters:
+#   * rawData(type: data.frame): the raw data of the eye movements
+#   * participant(type: integer): the id number of the participant 
+#   * text(type: integer): the id number of the text
+# Result: this function does not return a result
+# Description: this function creates a heat map of the eye movements and it writes the heat map to a file
+visualizeHeatmap <- function(rawData, participant, text)
+{
+  # Set the name of the file to save the scanpath visualization in
+  fileName <- paste(dirname(getwd()), "/visualizations/heatmaps/heatmap_number(", participant, 
+                    ")_id(", text, ").png", sep = "")
+  # Create the directory if it does not exist yet
+  dir.create(dirname(fileName), showWarnings = FALSE, recursive = TRUE)
+  
+  ###################################################################################################################
+  #####TODO#####
+  ###################################################################################################################
+}
+
+# Name: visualizeScanpath
+# Parameters:
+#   * fixationsData(type: data.frame): the fixation events
+#   * participant(type: integer): the id number of the participant 
+#   * text(type: integer): the id number of the text
+# Result: this function does not return a result
+# Description: this function creates a scanpath visualization of the fixations and writes this visualization 
+#              to a file
+visualizeScanpath <- function(fixationsData, participant, text)
+{
+  # Set the name of the file to save the scanpath visualization in
+  fileName <- paste(dirname(getwd()), "/visualizations/scanpaths/scanpath_number(", participant, 
+                    ")_id(", text, ").png", sep = "")
+  # Create the directory if it does not exist yet
+  dir.create(dirname(fileName), showWarnings = FALSE, recursive = TRUE)
+  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
+  png(filename = fileName, width = 1280, height = 1024)
+  # Create an empty plot
+  plot.new()
+  # Create a new plot window
+  plot.window(xlim = c(0, 1280), ylim = c(0, 1024))
+  # Create an empty plot with the correct horizontal-axis and correct vertical-axis
+  plot(NULL, NULL, type = "n", axes = TRUE, ann = FALSE, xlim = c(0,1280), ylim = c(1024,0))
+  # Plot the fixation points
+  points(fixationsData$x, fixationsData$y, col = "red", cex = 1.5)
+  # Plot lines, which represent saccades, between the fixation points
+  lines(fixationsData$x, fixationsData$y)
+  # End the plotting
+  dev.off()
+}
+
+# Name: visualizeFrequencies
+# Parameters:
+#   * rawData(type: data.frame): the raw data of the eye movements
+#   * participant(type: integer): the id number of the participant 
+#   * text(type: integer): the id number of the text
+# Result: this function does not return a result
+# Description: this function creates visualizations of the frequencies of the metrics of the raw eye movements. 
+#              These visualizations are writen to files
+visualizeFrequencies <- function(rawData, participant, text)
+{
+  # The name of the directory for saving the visualizations of the frequencies of the raw data
+  directoryName <- paste(dirname(getwd()), "/visualizations/frequencies", sep = "")
+  # Create the directory if it does not exist yet
+  dir.create(directoryName, showWarnings = FALSE, recursive = TRUE)
+  
+  ###################################################################################################################
+  # Create the directory for histograms of the x-coordinate of the eyes if it does not exist yet
+  dir.create(paste(directoryName, "/X_histograms", sep = ""), showWarnings = FALSE, recursive = TRUE)
+  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
+  png(filename = paste(directoryName, "/X_histograms/histogram_X_number(", participant, ")_id(", text, ").png", 
+                       sep = ""))
+  # Create an empty plot
+  plot.new()
+  # Create the histogram of the x-coordinate of the eyes. Because the x-coordinate of the left eye is equal to 
+  # the x-coordinate of the right eye, we only need to create a histogram for one of the eyes
+  hist(rawData$`L POR X [px]`, xlab = "X-coordinate of the eyes", main = "Histogram of the x-coordinate of the eyes")
+  # End the plotting
+  dev.off()
+  
+  ###################################################################################################################
+  # Create the directory for histograms of the y-coordinate of the eyes if it does not exist yet
+  dir.create(paste(directoryName, "/Y_histograms", sep = ""), showWarnings = FALSE, recursive = TRUE)
+  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
+  png(filename = paste(directoryName, "/Y_histograms/histogram_Y_number(", participant, ")_id(", text, ").png", 
+                       sep = ""))
+  # Create an empty plot
+  plot.new()
+  # Create the histogram of the y-coordinate of the eyes. Because the y-coordinate of the left eye is equal to 
+  # the x-coordinate of the right eye, we only need to create a histogram for one of the eyes
+  hist(rawData$`L POR Y [px]`, xlab = "Y-coordinate of the eyes", main = "Histogram of the y-coordinate of the eyes")
+  # End the plotting
+  dev.off()
+  
+  ###################################################################################################################
+  # Create the directory for barplots of the L event info of the raw eye movement data
+  dir.create(paste(directoryName, "/LEvent_barplots", sep = ""), showWarnings = FALSE, recursive = TRUE)
+  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
+  png(filename = paste(directoryName, "/LEvent_barplots/barplot_LEvent_number(", participant, ")_id(", text, 
+                       ").png", sep = ""))
+  # Create an empty plot
+  plot.new()
+  # Create the barplot of the left eye event
+  barplot(table(rawData$`L Event Info`), xlab = "Left eye event", main = "Histogram of the left eye event")
+  # End the plotting
+  dev.off()
+  
+  ###################################################################################################################
+  # Create the directory for barplots of the R event info of the raw eye movement data
+  dir.create(paste(directoryName, "/REvent_barplots", sep = ""), showWarnings = FALSE, recursive = TRUE)
+  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
+  png(filename = paste(directoryName, "/REvent_barplots/barplot_REvent_number(", participant, ")_id(", text, 
+                       ").png", sep = ""))
+  # Create an empty plot
+  plot.new()
+  # Create the barplot of the right eye event
+  barplot(table(rawData$`R Event Info`), xlab = "Right eye event", main = "Histogram of the right eye event")
+  # End the plotting
+  dev.off()
 }
 
 # Name: transformData
