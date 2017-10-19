@@ -40,6 +40,9 @@ processData <- function(experimentFile, participantRatings)
     textData <- filterData(textData)
     # Compute the different events fro the eye tracking data
     eventsData <- transformData(textData, dispersion)
+    # Filter out all negative eye positions
+    textData <- subset(textData, textData$`L POR X [px]` >= 0 & textData$`L POR Y [px]` >= 0 &
+                         textData$`R POR X [px]` >= 0 & textData$`R POR Y [px]` >= 0 )
     # Visualize the data
     visualizeData(textData, eventsData, unique(participantRatings$person.ID), textID)
     # Extract the participant rating of the current text
