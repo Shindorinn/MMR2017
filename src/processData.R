@@ -24,7 +24,7 @@ processData <- function(experimentFile, participantRatings)
   eyeTrackingData <- subset(eyeTrackingData, eyeTrackingData$stimulus_id %in% participantRatings$text.ID)
   
   #   Specify the maximum allowed dispersion of the coordinates for a fixation event
-  dispersion <- 25
+  dispersion <- 100
   
   # Create a vector to store all training samples, i.e. a sample of aggregate metrics for each text
   trainingSamples <- list()
@@ -38,7 +38,7 @@ processData <- function(experimentFile, participantRatings)
     textData <- subset(eyeTrackingData, eyeTrackingData$stimulus_id == textID)
     # Filter the eye tracking data
     textData <- filterData(textData)
-    # Compute the different events fro the eye tracking data
+    # Compute the different events from the eye tracking data
     eventsData <- transformData(textData, dispersion)
     # Visualize the data
     visualizeData(textData, eventsData, unique(participantRatings$person.ID), textID)
@@ -322,7 +322,7 @@ visualizeFrequencies <- function(rawData, participant, text)
 transformData <- function(rawData, dispersion)
 {
   # The fixation events
-  fixations <- fixationsData(rawData, dispersion, 6)
+  fixations <- fixationsData(rawData, dispersion, 5)
   
   list(Fixations = fixations, Saccades = saccadeData(fixations), Blinks = blinkData(rawData))
 }
@@ -399,8 +399,9 @@ blinkData <- function(rawData)
   # Loop over all samples to determine sequences of blink events
   for(index in c(1:(nrow(rawData))))
   {
-    # We should have registrated a blink event for at least one of the eyes
-    if(rawData[index]$`L Event Info` == "Blink" | rawData[index]$`R Event Info` == "Blink")
+    # We should have registrated a value <= 0 for at least one of the eye positions
+    if(rawData[index]$`L POR X [px]` <= 0 | rawData[index]$`L POR Y [px]` <= 0 | 
+       rawData[index]$`R POR X [px]` <= 0 | rawData[index]$`R POR Y [px]` <= 0)
     {
       # Check whether or not this is the first sample in the sequence of blinks currently under investigation
       if(is.na(blinkStartSample)) 
@@ -410,8 +411,7 @@ blinkData <- function(rawData)
       }
     }
     
-    # Neither have we registrated a blink event for the left eye nor have we registrated a blink event for the 
-    # right eye
+    # We have not registrated a value <= 0 for at least one of the eye positions
     else
     {
       # Check whether or not a sequence of blink events was currently under construction
@@ -445,10 +445,6 @@ filterData <- function(textData)
   filteredData <- subset(textData, !is.na(textData$Time) & !is.na(textData$`L POR X [px]`) & 
                            !is.na(textData$`L POR Y [px]`) & !is.na(textData$`R POR X [px]`) & 
                            !is.na(textData$`R POR Y [px]`)) 
-  
-  # Filter out all data where at least one of the positions of the eyes has a negative value
-  filteredData <- subset(filteredData, filteredData$`L POR X [px]` >= 0 & filteredData$`L POR Y [px]` >= 0 & 
-                           filteredData$`R POR X [px]` >= 0 & filteredData$`R POR Y [px]` >= 0)
   
   # Filter out all data samples where the position of the left eye is different from the position of the right eye. 
   # It does not look like this is ever the case, but to be sure we filter out these samples anyway
