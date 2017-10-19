@@ -2,12 +2,11 @@ import numpy as np
 import cv2
 import pandas as pd
 
-df = pd.read_csv("p01_ET_samples.txt", "\t")
+df = pd.read_csv("..\data\eye-tracking_data\p01_ET_samples.txt", "\t")
 for filename in df["Stimulus"].unique():
-    filename = "0b31db6a-86e3-4d45-ac7e-8bdbf2ae5a13.jpg"
     if filename == "richtext.jpg" or filename == "richtext7.jpg":
         continue
-    singledf = df.loc[(df["Stimulus"] == filename) & (df["L Event Info"] == "Fixation") & (df["R Event Info"] == "Fixation")]
+    singledf = df.loc[(df["Stimulus"] == filename)]# & (df["L Event Info"] == "Fixation") & (df["R Event Info"] == "Fixation")]
     if len(singledf) == 0:
         continue
 
@@ -32,10 +31,20 @@ for filename in df["Stimulus"].unique():
     for i in range(1, lxcolumn.size):
         lloc = (int(lxcolumn.iloc[i] + xoffset), int(lycolumn.iloc[i] + yoffset))
 
-        cv2.line(img, lprev, lloc, (0, i % (lxcolumn.size / 1) * 255 / (lxcolumn.size / 1), 255), 2)
+        #cv2.line(img, lprev, lloc, (0, i % (lxcolumn.size / 1) * 255 / (lxcolumn.size / 1), 255), 2)
+        if singledf["L Event Info"].iloc[i] == "Fixation":
+            cv2.line(img, lprev, lloc, (0, 0, 255), 2)
+        elif singledf["L Event Info"].iloc[i] == "Blink":
+            cv2.line(img, lprev, lloc, (0, 255, 0), 2)
+        elif singledf["L Event Info"].iloc[i] == "Saccade":
+            cv2.line(img, lprev, lloc, (255, 0, 0), 2)
         lprev = lloc
 
     print filename
+
+    point = (0, 0)
+    cv2.line(img, (int(xoffset) + point[0], 0), (int(xoffset) + point[0], size[0]), (0, 0, 0), 2)
+    cv2.line(img, (0, int(yoffset) + point[1]), (size[1], int(yoffset) + point[1]), (0, 0, 0), 2)
 
     cv2.namedWindow("img", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("img", size[0], size[1])
