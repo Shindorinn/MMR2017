@@ -311,7 +311,10 @@ transformData <- function(rawData, dispersion)
 fixationsData <- function(rawData, dispersion, minSamples)
 {
   # Compute all fixation events
-  emov.idt(rawData$Time, rawData$`L POR X [px]`, rawData$`L POR Y [px]`, dispersion, minSamples)
+  fixations <- emov.idt(rawData$Time, rawData$`L POR X [px]`, rawData$`L POR Y [px]`, dispersion, minSamples)
+  # Remove all fixations of negative coordinates
+  fixations <- subset(fixations, fixations$x > 0 & fixations$y > 0)
+  fixations
 }
 
 # Name: saccadeData
