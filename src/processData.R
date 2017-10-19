@@ -16,15 +16,15 @@ processData <- function(experimentFile, participantRatings)
                                           "NULL", "NULL", "NULL", NA, NA, NA, NA, "NULL", "NULL", "NULL", "NULL", 
                                           "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", 
                                           "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", 
-                                          "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "character", 
-                                          "character", "NULL", "NULL", "integer", "NULL"))
+                                          "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", 
+                                          "NULL", "NULL", "NULL", "integer", "NULL"))
   
   # Remove all samples for which no stimulus_id has been observed, i.e. all samples that do not belong to one of the 
   # 18 texts that the test subject has read
   eyeTrackingData <- subset(eyeTrackingData, eyeTrackingData$stimulus_id %in% participantRatings$text.ID)
   
   #   Specify the maximum allowed dispersion of the coordinates for a fixation event
-  dispersion <- 100
+  dispersion <- 25
   
   # Create a vector to store all training samples, i.e. a sample of aggregate metrics for each text
   trainingSamples <- list()
@@ -38,7 +38,7 @@ processData <- function(experimentFile, participantRatings)
     textData <- subset(eyeTrackingData, eyeTrackingData$stimulus_id == textID)
     # Filter the eye tracking data
     textData <- filterData(textData)
-    # Compute the different events from the eye tracking data
+    # Compute the different events fro the eye tracking data
     eventsData <- transformData(textData, dispersion)
     # Visualize the data
     visualizeData(textData, eventsData, unique(participantRatings$person.ID), textID)
@@ -322,7 +322,7 @@ visualizeFrequencies <- function(rawData, participant, text)
 transformData <- function(rawData, dispersion)
 {
   # The fixation events
-  fixations <- fixationsData(rawData, dispersion, 5)
+  fixations <- fixationsData(rawData, dispersion, 6)
   
   list(Fixations = fixations, Saccades = saccadeData(fixations), Blinks = blinkData(rawData))
 }
@@ -399,9 +399,9 @@ blinkData <- function(rawData)
   # Loop over all samples to determine sequences of blink events
   for(index in c(1:(nrow(rawData))))
   {
-    # We should have registrated a value <= 0 for at least one of the eye positions
-    if(rawData[index]$`L POR X [px]` <= 0 | rawData[index]$`L POR Y [px]` <= 0 | 
-       rawData[index]$`R POR X [px]` <= 0 | rawData[index]$`R POR Y [px]` <= 0)
+    # We should have registrated a negative position for at least one of the eyes
+    if(rawData[index]$`L POR X [px]` <= 0 | rawData[index]$`L POR Y [px]` <= 0 |
+       rawData[index]$`R POR X [px]` <= 0 | rawData[index]$`R POR Y [px]` <= 0 )
     {
       # Check whether or not this is the first sample in the sequence of blinks currently under investigation
       if(is.na(blinkStartSample)) 
@@ -411,7 +411,7 @@ blinkData <- function(rawData)
       }
     }
     
-    # We have not registrated a value <= 0 for at least one of the eye positions
+    # We have not registrated a negative position for at least one of the eyes
     else
     {
       # Check whether or not a sequence of blink events was currently under construction
