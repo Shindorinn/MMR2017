@@ -283,32 +283,6 @@ visualizeFrequencies <- function(rawData, participant, text)
   hist(rawData$`L POR Y [px]`, xlab = "Y-coordinate of the eyes", main = "Histogram of the y-coordinate of the eyes")
   # End the plotting
   dev.off()
-  
-  ###################################################################################################################
-  # Create the directory for barplots of the L event info of the raw eye movement data
-  dir.create(paste(directoryName, "/LEvent_barplots", sep = ""), showWarnings = FALSE, recursive = TRUE)
-  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
-  png(filename = paste(directoryName, "/LEvent_barplots/barplot_LEvent_number(", participant, ")_id(", text, 
-                       ").png", sep = ""))
-  # Create an empty plot
-  plot.new()
-  # Create the barplot of the left eye event
-  barplot(table(rawData$`L Event Info`), xlab = "Left eye event", main = "Histogram of the left eye event")
-  # End the plotting
-  dev.off()
-  
-  ###################################################################################################################
-  # Create the directory for barplots of the R event info of the raw eye movement data
-  dir.create(paste(directoryName, "/REvent_barplots", sep = ""), showWarnings = FALSE, recursive = TRUE)
-  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
-  png(filename = paste(directoryName, "/REvent_barplots/barplot_REvent_number(", participant, ")_id(", text, 
-                       ").png", sep = ""))
-  # Create an empty plot
-  plot.new()
-  # Create the barplot of the right eye event
-  barplot(table(rawData$`R Event Info`), xlab = "Right eye event", main = "Histogram of the right eye event")
-  # End the plotting
-  dev.off()
 }
 
 # Name: transformData
