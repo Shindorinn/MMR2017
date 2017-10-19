@@ -16,8 +16,8 @@ processData <- function(experimentFile, participantRatings)
                                           "NULL", "NULL", "NULL", NA, NA, NA, NA, "NULL", "NULL", "NULL", "NULL", 
                                           "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", 
                                           "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", 
-                                          "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "character", 
-                                          "character", "NULL", "NULL", "integer", "NULL"))
+                                          "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", "NULL", 
+                                          "NULL", "NULL", "NULL", "integer", "NULL"))
   
   # Remove all samples for which no stimulus_id has been observed, i.e. all samples that do not belong to one of the 
   # 18 texts that the test subject has read
@@ -283,32 +283,6 @@ visualizeFrequencies <- function(rawData, participant, text)
   hist(rawData$`L POR Y [px]`, xlab = "Y-coordinate of the eyes", main = "Histogram of the y-coordinate of the eyes")
   # End the plotting
   dev.off()
-  
-  ###################################################################################################################
-  # Create the directory for barplots of the L event info of the raw eye movement data
-  dir.create(paste(directoryName, "/LEvent_barplots", sep = ""), showWarnings = FALSE, recursive = TRUE)
-  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
-  png(filename = paste(directoryName, "/LEvent_barplots/barplot_LEvent_number(", participant, ")_id(", text, 
-                       ").png", sep = ""))
-  # Create an empty plot
-  plot.new()
-  # Create the barplot of the left eye event
-  barplot(table(rawData$`L Event Info`), xlab = "Left eye event", main = "Histogram of the left eye event")
-  # End the plotting
-  dev.off()
-  
-  ###################################################################################################################
-  # Create the directory for barplots of the R event info of the raw eye movement data
-  dir.create(paste(directoryName, "/REvent_barplots", sep = ""), showWarnings = FALSE, recursive = TRUE)
-  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
-  png(filename = paste(directoryName, "/REvent_barplots/barplot_REvent_number(", participant, ")_id(", text, 
-                       ").png", sep = ""))
-  # Create an empty plot
-  plot.new()
-  # Create the barplot of the right eye event
-  barplot(table(rawData$`R Event Info`), xlab = "Right eye event", main = "Histogram of the right eye event")
-  # End the plotting
-  dev.off()
 }
 
 # Name: transformData
@@ -399,8 +373,9 @@ blinkData <- function(rawData)
   # Loop over all samples to determine sequences of blink events
   for(index in c(1:(nrow(rawData))))
   {
-    # We should have registrated a blink event for at least one of the eyes
-    if(rawData[index]$`L Event Info` == "Blink" | rawData[index]$`R Event Info` == "Blink")
+    # We should have registrated a negative position for at least one of the eyes
+    if(rawData[index]$`L POR X [px]` <= 0 | rawData[index]$`L POR Y [px]` <= 0 |
+       rawData[index]$`R POR X [px]` <= 0 | rawData[index]$`R POR Y [px]` <= 0 )
     {
       # Check whether or not this is the first sample in the sequence of blinks currently under investigation
       if(is.na(blinkStartSample)) 
@@ -410,8 +385,7 @@ blinkData <- function(rawData)
       }
     }
     
-    # Neither have we registrated a blink event for the left eye nor have we registrated a blink event for the 
-    # right eye
+    # We have not registrated a negative position for at least one of the eyes
     else
     {
       # Check whether or not a sequence of blink events was currently under construction
@@ -445,10 +419,6 @@ filterData <- function(textData)
   filteredData <- subset(textData, !is.na(textData$Time) & !is.na(textData$`L POR X [px]`) & 
                            !is.na(textData$`L POR Y [px]`) & !is.na(textData$`R POR X [px]`) & 
                            !is.na(textData$`R POR Y [px]`)) 
-  
-  # Filter out all data where at least one of the positions of the eyes has a negative value
-  filteredData <- subset(filteredData, filteredData$`L POR X [px]` >= 0 & filteredData$`L POR Y [px]` >= 0 & 
-                           filteredData$`R POR X [px]` >= 0 & filteredData$`R POR Y [px]` >= 0)
   
   # Filter out all data samples where the position of the left eye is different from the position of the right eye. 
   # It does not look like this is ever the case, but to be sure we filter out these samples anyway
