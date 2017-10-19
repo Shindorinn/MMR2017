@@ -42,8 +42,9 @@ for filename in df["Stimulus"].unique():
 
     print filename
 
-    cv2.line(img, (int(xoffset), 0), (int(xoffset), size[0]), (0, 0, 0), 2)
-    cv2.line(img, (0, int(yoffset)), (size[1], int(yoffset)), (0, 0, 0), 2)
+    point = (0, 0)
+    cv2.line(img, (int(xoffset) + point[0], 0), (int(xoffset) + point[0], size[0]), (0, 0, 0), 2)
+    cv2.line(img, (0, int(yoffset) + point[1]), (size[1], int(yoffset) + point[1]), (0, 0, 0), 2)
 
     cv2.namedWindow("img", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("img", size[0], size[1])
