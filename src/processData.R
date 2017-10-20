@@ -410,6 +410,9 @@ blinkData <- function(rawData)
     }
   }
   
+  # Remove all blinks that have a duration of less than 70 milliseconds
+  blinkData <- blinkData[blinkData$Duration >= 70000,]
+  
   blinkData
 }
   
