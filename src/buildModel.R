@@ -7,6 +7,10 @@
 # Description: this function creates the random forest regressor model
 buildModel <- function(trainingData)
 {
+  # Make sure we do not run into errors when building the model, because the model cannot be build if there 
+  # are NA values in the data set
+  trainingData[is.na(trainingData)] <- 0
+  
   predictors <- featureSelection(trainingData)
   
   randomForest1 <- randomForest(x = trainingData[, c(1:(length(trainingData) - 3))],

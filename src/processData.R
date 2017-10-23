@@ -24,7 +24,7 @@ processData <- function(experimentFile, participantRatings)
   eyeTrackingData <- subset(eyeTrackingData, eyeTrackingData$stimulus_id %in% participantRatings$text.ID)
   
   #   Specify the maximum allowed dispersion of the coordinates for a fixation event
-  dispersion <- 25
+  dispersion <- 100
   
   # Create a vector to store all training samples, i.e. a sample of aggregate metrics for each text
   trainingSamples <- list()
@@ -173,6 +173,14 @@ computeSaccadeMetrics <- function(saccadeData)
 # Description: this function computes the aggregate metrics of the blink events
 computeBlinkMetrics <- function(blinkData)
 {
+  # Make sure that we do not calculate NA for the standard deviation if we have only 1 blink or less
+  if (nrow(blinkData) <= 1) 
+  {
+    return(list(Blinks = nrow(blinkData),
+                Blink_Duration_Mean = mean(blinkData$Duration),
+                Blink_Duration_SD = 0))
+  }
+  
   list(Blinks = nrow(blinkData),
        Blink_Duration_Mean = mean(blinkData$Duration),
        Blink_Duration_SD = sd(blinkData$Duration))
@@ -185,7 +193,7 @@ computeBlinkMetrics <- function(blinkData)
 #   * participant(type: integer): the id number of the participant 
 #   * text(type: integer): the id number of the text
 # Result: this function does not return a result
-# Description: this function creates a heat map of the eye movements and it writes the heat map to a file
+# Description: this function writes the visualizations of the eye tracking data to a file
 visualizeData <- function(rawData, eventsData, participant, text)
 {
   visualizeHeatmap(rawData, participant, text)
@@ -299,7 +307,7 @@ visualizeFrequencies <- function(rawData, participant, text)
 transformData <- function(rawData, dispersion)
 {
   # The fixation events
-  fixations <- fixationsData(rawData, dispersion, 6)
+  fixations <- fixationsData(rawData, dispersion, 5)
   
   list(Fixations = fixations, Saccades = saccadeData(fixations), Blinks = blinkData(rawData))
 }
