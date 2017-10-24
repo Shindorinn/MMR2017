@@ -268,9 +268,20 @@ visualizeHeatmapLoadTest <- function(rawData, participant, text)
   # Create the directory if it does not exist yet
   dir.create(dirname(fileName), showWarnings = FALSE, recursive = TRUE)
   
-  ###################################################################################################################
-  #####TODO#####
-  ###################################################################################################################
+  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
+  png(filename = fileName, width = 1280, height = 1024)
+  # Create an empty plot
+  plot.new()
+  # Create a new plot window
+  plot.window(xlim = c(0, 1280), ylim = c(0, 1024))
+  # Create an empty plot with the correct horizontal-axis and correct vertical-axis
+  plot(NULL, NULL, type = "n", axes = TRUE, ann = FALSE, xlim = c(0,1280), ylim = c(1024,0))
+  
+  mba.int <- mba.surf(fixationData[,c(4,5,3)], 300, 300, n = 1, m = 1, h = 8, extend = TRUE, sp = FALSE, 0, 1280, 0, 1024)$xyz.est
+  image.plot(mba.int)
+  
+  # End the plotting
+  dev.off()
 }
 
 # Name: visualizeScanpathLoadTest

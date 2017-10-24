@@ -196,7 +196,7 @@ computeBlinkMetrics <- function(blinkData)
 # Description: this function writes the visualizations of the eye tracking data to a file
 visualizeData <- function(rawData, eventsData, participant, text)
 {
-  visualizeHeatmap(rawData, participant, text)
+  visualizeHeatmap(rawData, participant, text, eventsData$Fixations)
   visualizeScanpath(eventsData$Fixations, participant, text)
   visualizeFrequencies(rawData, participant, text)
 }
@@ -208,17 +208,28 @@ visualizeData <- function(rawData, eventsData, participant, text)
 #   * text(type: integer): the id number of the text
 # Result: this function does not return a result
 # Description: this function creates a heat map of the eye movements and it writes the heat map to a file
-visualizeHeatmap <- function(rawData, participant, text)
+visualizeHeatmap <- function(rawData, participant, text, fixationData)
 {
-  # Set the name of the file to save the scanpath visualization in
+  # Set the name of the file to save the heatmap in
   fileName <- paste(dirname(getwd()), "/visualizations/heatmaps/heatmap_number(", participant, 
                     ")_id(", text, ").png", sep = "")
   # Create the directory if it does not exist yet
   dir.create(dirname(fileName), showWarnings = FALSE, recursive = TRUE)
+ 
+  # Set the file as output for the plot, i.e. do not create a plot window but save the plot directly to a file
+  png(filename = fileName, width = 1280, height = 1024)
+  # Create an empty plot
+  plot.new()
+  # Create a new plot window
+  plot.window(xlim = c(0, 1280), ylim = c(0, 1024))
+  # Create an empty plot with the correct horizontal-axis and correct vertical-axis
+  plot(NULL, NULL, type = "n", axes = TRUE, ann = FALSE, xlim = c(0,1280), ylim = c(1024,0))
+
+  mba.int <- mba.surf(fixationData[,c(4,5,3)], 300, 300, n = 1, m = 1, h = 8, extend = TRUE, sp = FALSE, 0, 1280, 0, 1024)$xyz.est
+  image.plot(mba.int)
   
-  ###################################################################################################################
-  #####TODO#####
-  ###################################################################################################################
+  # End the plotting
+  dev.off()
 }
 
 # Name: visualizeScanpath
