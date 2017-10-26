@@ -251,7 +251,7 @@ readDataLoadTest <- function(workLoad)
 # Description: this function writes the visualizations of the eye tracking data to a file
 visualizeDataLoadTest <- function(rawData, eventsData, participant, text)
 {
-  visualizeHeatmapLoadTest(rawData, participant, text)
+  visualizeHeatmapLoadTest(rawData, participant, text, eventsData$Fixations)
   visualizeScanpathLoadTest(eventsData$Fixations, participant, text)
   visualizeFrequenciesLoadTest(rawData, participant, text)
 }
@@ -263,7 +263,7 @@ visualizeDataLoadTest <- function(rawData, eventsData, participant, text)
 #   * text(type: integer): the id number of the text
 # Result: this function does not return a result
 # Description: this function creates a heat map of the eye movements and it writes the heat map to a file
-visualizeHeatmapLoadTest <- function(rawData, participant, text)
+visualizeHeatmapLoadTest <- function(rawData, participant, text, fixationData)
 {
   # Set the name of the file to save the scanpath visualization in
   fileName <- paste(dirname(getwd()), "/visualizations/loadTests/heatmaps/heatmap_number(", participant, 
@@ -280,8 +280,13 @@ visualizeHeatmapLoadTest <- function(rawData, participant, text)
   # Create an empty plot with the correct horizontal-axis and correct vertical-axis
   plot(NULL, NULL, type = "n", axes = TRUE, ann = FALSE, xlim = c(0,1280), ylim = c(1024,0))
   
-  mba.int <- mba.surf(fixationData[,c(4,5,3)], 300, 300, n = 1, m = 1, h = 8, extend = TRUE, sp = FALSE, 0, 1280, 0, 1024)$xyz.est
-  image.plot(mba.int)
+  if (nrow(fixationData) > 1) 
+  {
+    print(ggplot(fixationData, aes(x = x, y = y)) + 
+            stat_density2d(geom = "tile", aes(fill = ..density..), contour = FALSE) + 
+            geom_point() + 
+            scale_fill_gradient('density', low = "lightblue", high = "red"))
+  }
   
   # End the plotting
   dev.off()
