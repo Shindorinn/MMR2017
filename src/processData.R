@@ -74,6 +74,9 @@ processData <- function(experimentFile, participantRatings)
 # Description: this function computes the aggregate metrics of the events of the eye movements
 computeMetrics <- function(eventsData, dispersion)
 {
+  eventsData$Fixations[is.na(eventsData$Fixations)] <- 0
+  eventsData$Saccades[is.na(eventsData$Saccades)] <- 0
+  eventsData$Blinks[is.na(eventsData$Blinks)] <- 0
   as.vector(append(append(computeFixationMetrics(eventsData$Fixations, dispersion), 
                           computeSaccadeMetrics(eventsData$Saccades)), 
                    computeBlinkMetrics(eventsData$Blinks)))
