@@ -23,6 +23,8 @@ runTests <- function()
   data <- readData()
   # Normalize the data
   normalizedData <- normalizeTrainingData(data)
+  # Remove NA values
+  normalizedData[is.na(normalizedData)] <- 0
   # Build the model
   model <- buildModel(normalizedData$TrainingData)
   # Predict the scores for interest, novelty-complexity and comprehensibility for each sample in the training data 
@@ -52,10 +54,11 @@ runTests <- function()
 # Name: runLoadTests
 # Parameters: 
 #   * workLoads(type: integer): the number of different workloads to test
+#   * times(type: integer): The number of iterations for testing the empirical computational complexity of the system
 # Result: has no result
 # Description: this function will compute the time it takes to run different parts of the system for different 
 #              workloads. These results are then written to a file
-runLoadTests <- function(workLoads = 3)
+runLoadTests <- function(workLoads = 3, times = 1)
 {
   # Create a data.frame to store the timing information for the different workloads
   timeData <- data.frame(Load = double(),
@@ -69,7 +72,7 @@ runLoadTests <- function(workLoads = 3)
   # Perform the computations for each of the specified workloads
   for(iteration in c(1:workLoads)) 
   {
-    timeData[iteration,] <- c((iteration / workLoads), loadTest(workLoad = (iteration / workLoads)))
+    timeData[iteration,] <- c((iteration / workLoads), loadTest(workLoad = (iteration / workLoads), times = times))
   }
   
   # The name of the directory for saving the results
