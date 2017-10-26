@@ -102,6 +102,29 @@ isProgressiveFixation <- function(fixation1, fixation2, dispersion)
 # Description: this function computes the aggregate metrics of the fixation events
 computeFixationMetrics <- function(fixationsData, dispersion)
 {
+  # Check special cases so that we will not get any errors
+  if (nrow(fixationsData) == 0) 
+  {
+    return(list(Fixations = 0,
+                Fixations_Progressive_Fraction = 0,
+                Fixations_Regressive_Fraction = 0,
+                Fixation_Progressive_Duration_Mean = 0,
+                Fixation_Regressive_Duration_Mean = 0,
+                Fixation_Progressive_Duration_SD = 0,
+                Fixation_Regressive_Duration_SD = 0))
+  }
+  
+  if (nrow(fixationsData) == 1) 
+  {
+    return(list(Fixations = 1,
+                Fixations_Progressive_Fraction = 1,
+                Fixations_Regressive_Fraction = 0,
+                Fixation_Progressive_Duration_Mean = mean(fixationsData$dur),
+                Fixation_Regressive_Duration_Mean = 0,
+                Fixation_Progressive_Duration_SD = sd(fixationsData$dur),
+                Fixation_Regressive_Duration_SD = 0))
+  }
+  
   # Create a data.frame for progressive fixations
   progressiveFixations <- data.frame(start = integer(),
                                      end = integer(),
@@ -225,8 +248,13 @@ visualizeHeatmap <- function(rawData, participant, text, fixationData)
   # Create an empty plot with the correct horizontal-axis and correct vertical-axis
   plot(NULL, NULL, type = "n", axes = TRUE, ann = FALSE, xlim = c(0,1280), ylim = c(1024,0))
 
-  mba.int <- mba.surf(fixationData[,c(4,5,3)], 300, 300, n = 1, m = 1, h = 8, extend = TRUE, sp = FALSE, 0, 1280, 0, 1024)$xyz.est
-  image.plot(mba.int)
+  if (nrow(fixationData) > 1) 
+  {
+    print(ggplot(fixationData, aes(x = x, y = y)) + 
+            stat_density2d(geom = "tile", aes(fill = ..density..), contour = FALSE) + 
+            geom_point() + 
+            scale_fill_gradient('density', low = "lightblue", high = "red"))
+  }
   
   # End the plotting
   dev.off()
