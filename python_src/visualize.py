@@ -2,11 +2,11 @@ import numpy as np
 import cv2
 import pandas as pd
 
-df = pd.read_csv("..\data\eye-tracking_data\p01_ET_samples.txt", "\t")
-for filename in df["Stimulus"].unique():
-    if filename == "richtext.jpg" or filename == "richtext7.jpg":
+df = pd.read_csv("..\data\eye-tracking_data\p36_ET_samples.txt", "\t")
+for stimulus_id in df["stimulus_id"].unique():
+    if stimulus_id == 0 or stimulus_id == 1 or stimulus_id == 2:
         continue
-    singledf = df.loc[(df["Stimulus"] == filename)]# & (df["L Event Info"] == "Fixation") & (df["R Event Info"] == "Fixation")]
+    singledf = df.loc[(df["stimulus_id"] == stimulus_id)]
     if len(singledf) == 0:
         continue
 
@@ -40,7 +40,7 @@ for filename in df["Stimulus"].unique():
             cv2.line(img, lprev, lloc, (255, 0, 0), 2)
         lprev = lloc
 
-    print filename
+    print stimulus_id
 
     point = (0, 0)
     cv2.line(img, (int(xoffset) + point[0], 0), (int(xoffset) + point[0], size[0]), (0, 0, 0), 2)
