@@ -92,16 +92,16 @@ predictScores <- function(samples, forest)
 
 # Name: predictScoresSingle
 # Parameters: 
-#   * sample(type: data.frame): a single sample for which to predict the scores for the interest, novelty-complexity 
+#   * singleSample(type: data.frame): a single sample for which to predict the scores for the interest, novelty-complexity 
 #                               and comprehensibility of the text
 #   * forest(type: list): the list of random forest regressors, one random forest regressor for each of the scores 
 #                         that we want to predict
 # Result: a vector of the predicted scores for the given sample
 # Description: this function computes the predictions of the scores for the sample
-predictScoresSingle <- function(sample, forest)
+predictScoresSingle <- function(singleSample, forest)
 {
   # Predict the scores
-  scores <- c(predict(forest$Forest1, sample), predict(forest$Forest2, sample), predict(forest$Forest3, sample))
+  scores <- c(predict(forest$Forest1, singleSample), predict(forest$Forest2, singleSample), predict(forest$Forest3, singleSample))
   # Label each score with the name of the measure to which it corresponds
   names(scores) <- c("Interest", "Novelty_Complexity", "Comprehensibility")
   scores
