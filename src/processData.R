@@ -38,6 +38,13 @@ processData <- function(experimentFile, participantRatings)
     textData <- subset(eyeTrackingData, eyeTrackingData$stimulus_id == textID)
     # Filter the eye tracking data
     textData <- filterData(textData)
+
+    # Do not take into account this data, because it is abnormal
+    if (skewness(textData$`L POR X [px]`) >= 5 | skewness(textData$`L POR Y [px]`) >= 5) 
+    {
+      next()
+    }
+    
     # Compute the different events fro the eye tracking data
     eventsData <- transformData(textData, dispersion)
     # Filter out all negative eye positions
