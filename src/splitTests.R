@@ -1,9 +1,16 @@
+runSplitTests <- function()
+{
+  results <- runTests1()
+  runTests2(results$NormalizedData$TrainingData, results$NormalizedData$MeanVector, 
+            results$NormalizedData$SDVector, results$Model)
+}
+
 runTests1 <- function()
 {
   # Read in the data
-  data <- readData()
+  trainingData <- readData()
   # Normalize the data
-  normalizedData <- normalizeTrainingData(data)
+  normalizedData <- normalizeTrainingData(trainingData)
   # Remove NA values
   normalizedData[is.na(normalizedData)] <- 0
   # Build the model

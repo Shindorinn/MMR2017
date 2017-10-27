@@ -21,6 +21,8 @@ normalize <- function(value, mean, sd)
 #              of all the features in the non-normalized training data set
 normalizeTrainingData <- function(trainingData)
 {
+  # Remove NA values
+  trainingData[is.na(trainingData)] <-0
   # Compute a vector of the mean of all the features in the non-normalized training data set
   meanVector <-sapply(trainingData[,c(1:(length(trainingData) - 3))], mean)
   # Compute a vector of the standard deviation of all the features in the non-normalized training data set
@@ -37,24 +39,25 @@ normalizeTrainingData <- function(trainingData)
 
 # Name: normalizeDataSample
 # Parameters: 
-#   * sample(type: data.frame): a single data sample that needs to be normalized
+#   * singleSample(type: data.frame): a single data sample that needs to be normalized
 #   * meanVector(type: vector): a vector of the means with which to normalize the features in the sample
 #   * sdVector(type: vector): a vector of the standard deviations with which to normalize the features in the sample
 # Result: a normalized sample
 # Description: this function normalizes the given data sample
-normalizeDataSample <- function(sample, meanVector, sdVector)
+normalizeDataSample <- function(singleSample, meanVector, sdVector)
 {
+  singleSample[is.na(singleSample)] <- 0
   # The sample must containing the same number of values as both the meanVector and the sdVector
-  if (!(ncol(sample) == length(meanVector)) & (length(meanVector) == length(sdVector)))
+  if (!(ncol(singleSample) == length(meanVector)) & (length(meanVector) == length(sdVector)))
   {
     return(NA)
   }
   
   # Normalize all the features in the sample
-  for(index in c(1:ncol(sample))) 
+  for(index in c(1:ncol(singleSample))) 
   {
-    sample[1, index] <- normalize(sample[1, index], meanVector[index], sdVector[index])
+    singleSample[1, index] <- normalize(singleSample[1, index], meanVector[index], sdVector[index])
   }
   
-  sample
+  singleSample
 }

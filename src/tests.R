@@ -20,11 +20,9 @@ runTests <- function()
   sdVectorFileName <- paste(directoryName, "/sd_vector.txt", sep = "")
   
   # Read in the data
-  data <- readData()
+  trainingData <- readData()
   # Normalize the data
-  normalizedData <- normalizeTrainingData(data)
-  # Remove NA values
-  normalizedData[is.na(normalizedData)] <- 0
+  normalizedData <- normalizeTrainingData(trainingData)
   # Build the model
   model <- buildModel(normalizedData$TrainingData)
   # Predict the scores for interest, novelty-complexity and comprehensibility for each sample in the training data 
