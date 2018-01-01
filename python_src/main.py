@@ -2,14 +2,15 @@ import pandas as pd
 import os
 
 from preprocessing import preprocess
+from models import run_models
 
 
 def read_data(datapath, eye_tracking_folder, label_file):
     print('Reading in label file', datapath + label_file)
-    labels = pd.read_excel(datapath + label_file)[['person ID', 'text ID', 'interest', 'complexity', 'comprehension', 'familiarity']]
+    labels = pd.read_excel(datapath + label_file, index_col=[0, 1])
     dfs = []
     for path, folders, files in os.walk(datapath + eye_tracking_folder):
-        for file in files[:2]:  # TODO remove the slice, just to make the test size smaller
+        for file in files[:]:  # TODO remove the slice, just to make the test size smaller
             df = pd.read_csv(path + file, delimiter='\t')
             # label all rows in df with the person id
             print(file)
@@ -17,22 +18,29 @@ def read_data(datapath, eye_tracking_folder, label_file):
             df['person ID'] = [int(file[1:3])] * df.shape[0]
             dfs += [df]
     print('Done reading in files')
-    return pd.concat(dfs), labels
+    data = pd.concat(dfs).rename(columns={'stimulus_id': 'text ID'})
+    return data, labels
+
+
+preprocessing = False
 
 
 def __main__():
-    print('Starting application')
-    datapath = '../data/'
-    eye_tracking_folder = 'eye-tracking_data/'
-    label_file = 'participant_ratings.xlsx'
-    training_data_file = 'trainingData.csv'
-    data, labels = read_data(datapath, eye_tracking_folder, label_file)
-    print('Unique person IDs : ', data['person ID'].unique())
-    print('Starting preprocessing')
-    data = preprocess(data, labels)
-    print('##### END RESULT #####')
-    print(data)
+    if preprocessing :
+        print('Starting application')
+        datapath = '../data/'
+        eye_tracking_folder = 'eye-tracking_data/'
+        label_file = 'participant_ratings.xlsx'
+        training_data_file = 'trainingData.csv'
+        data, labels = read_data(datapath, eye_tracking_folder, label_file)
+        print('Unique person IDs : ', data['person ID'].unique())
+        print('Starting preprocessing')
+        data = preprocess(data, labels)
+        print('##### END RESULT #####')
+        print(data)
+        data.to_csv('preprocessed_data.csv')
 
+    run_models()
 
 
 if __name__ == '__main__':
