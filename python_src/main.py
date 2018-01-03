@@ -1,5 +1,7 @@
 import pandas as pd
 import os
+import sys
+
 
 from preprocessing import preprocess
 from models import run_models
@@ -22,10 +24,15 @@ def read_data(datapath, eye_tracking_folder, label_file):
     return data, labels
 
 
-preprocessing = False
+
 
 
 def __main__():
+    args = sys.argv
+    if len(args) > 1:
+        preprocessing = args[1] == 'False'
+    else:
+        preprocessing = False
     if preprocessing :
         print('Starting application')
         datapath = '../data/'
